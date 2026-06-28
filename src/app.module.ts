@@ -4,7 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ProductsModule } from './products/products.module';
 import { CurrencyModule } from './currency/currency.module';
-import { CurrenService } from './curren/curren.service';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -13,8 +13,9 @@ import { CurrenService } from './curren/curren.service';
     }),
     ProductsModule,
     CurrencyModule,
+    ChatModule,
   ],
   controllers: [AppController],
-  providers: [AppService, CurrenService],
+  providers: [AppService],
 })
 export class AppModule {}
