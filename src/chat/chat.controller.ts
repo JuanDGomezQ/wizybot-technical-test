@@ -15,9 +15,16 @@ export class ChatController {
    * @throws BadRequestException if request validation fails
    */
   @Post()
-  @ApiOperation({ summary: 'Chat with Wizybot' })
+  @ApiOperation({
+    summary: 'Send a message to the AI agent',
+    description:
+      'Processes a natural language query, performs tool calls (search/currency) if needed, and returns a conversational response.',
+  })
   @ApiBody({ type: ChatRequestDto })
-  @ApiResponse({ status: 200, description: 'LLM response' })
+  @ApiResponse({
+    status: 200,
+    description: 'The AI response has been generated.',
+  })
   async chat(@Body() chatRequest: ChatRequestDto) {
     const response = await this.chatService.chat(chatRequest);
 

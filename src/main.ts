@@ -17,10 +17,13 @@ async function bootstrap() {
   // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('Wizybot Chatbot API')
-    .setDescription('AI Customer Support and Sales Agent powered by OpenAI')
+    .setDescription(
+      'AI-powered sales agent capable of product searching and currency conversion ' +
+        'using OpenAI Function Calling. This API processes natural language queries ' +
+        'and routes them to specialized local tools for real-time information.',
+    )
     .setVersion('1.0')
     .build();
-
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
