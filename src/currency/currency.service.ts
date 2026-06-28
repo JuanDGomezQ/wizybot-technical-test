@@ -17,17 +17,16 @@ export class CurrencyService {
   ) {}
 
   /**
-   * Converts `amount` from one ISO-4217 currency to another using live rates
-   * from the Open Exchange Rates API.
+   * Convert between ISO-4217 currency pairs using live exchange rates.
    *
-   * WHY TWO-STEP (via USD)?
-   * The free plan only provides USD as the base currency.  We normalise every
-   * conversion through USD so any currency pair is supported.
+   * Fetches current rates from Open Exchange Rates API and normalizes conversions
+   * through USD (free tier constraint). Rates are validated and logged for audit.
    *
-   * @param amount       - Numeric amount to convert
-   * @param from         - Source currency code (e.g. "EUR")
-   * @param to           - Target currency code (e.g. "CAD")
-   * @returns            - Converted amount rounded to 2 decimal places
+   * @param amount - Numeric value to convert
+   * @param from - ISO-4217 source currency code (e.g., EUR, GBP)
+   * @param to - ISO-4217 target currency code (e.g., CAD, USD)
+   * @returns Converted amount rounded to 2 decimal places.
+   * @throws InternalServerErrorException if API fails, codes invalid, or network error.
    */
   async convert(amount: number, from: string, to: string): Promise<number> {
     const fromUpper = from.toUpperCase();

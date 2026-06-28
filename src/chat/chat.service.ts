@@ -27,24 +27,14 @@ export class ChatService {
   }
 
   /**
-   * Main entry point for the chatbot pipeline.
+   * Execute a multi-turn conversational exchange with stateful context management.
    *
-   * Implements the two-call (multi-turn) tool-use loop:
-   *   1. Send user message + available tools to OpenAI.
-   *   2. If the model requests a tool, execute it locally and feed the result back.
-   *   3. Repeat until the model returns a final text response (finish_reason === 'stop').
+   * Orchestrates: (1) constructs conversation history, (2) sends message + tools
+   * to OpenAI, (3) executes tool calls locally, (4) repeats until model finishes.
    *
-   * WHY TYPE NARROWING ON toolCall.type?
-   * openai SDK v6.x defines ChatCompletionMessageToolCall as a discriminated union:
-   *   | ChatCompletionMessageFunctionToolCall  (type: 'function') → has .function
-   *   | ChatCompletionMessageCustomToolCall    (type: 'custom')   → has .custom
-   * TypeScript cannot guarantee .function exists on the union, so we must narrow
-   * with `toolCall.type === 'function'` before accessing it — or the compiler
-   * throws TS2339.  In practice, our chatTools only define 'function' tools, so
-   * the 'custom' branch will never execute at runtime.
-   *
-   * @param userMessage - Raw user enquiry string from the HTTP request
-   * @returns           - Final natural-language response from the LLM
+   * @param dto - Request object with user message and optional sessionId
+   * @returns Final natural-language response from the LLM after all tool calls resolved.
+   * @throws Does not throw; returns fallback if iteration limit exceeded.
    */
   async chat(dto: ChatRequestDto): Promise<string> {
     const { message: userMessage, sessionId = 'default' } = dto;

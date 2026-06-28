@@ -7,6 +7,13 @@ import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
+  /**
+   * HTTP endpoint to process user messages through the chatbot pipeline.
+   *
+   * @param chatRequest - Request payload with user message and optional sessionId
+   * @returns Response object with `response` field containing the LLM's final text
+   * @throws BadRequestException if request validation fails
+   */
   @Post()
   @ApiOperation({ summary: 'Chat with Wizybot' })
   @ApiBody({ type: ChatRequestDto })

@@ -9,6 +9,15 @@ export class ProductsService implements OnModuleInit {
   private readonly logger = new Logger(ProductsService.name);
   private products: Product[] = [];
 
+  /**
+   * Initialize the product catalog on module startup (NestJS lifecycle hook).
+   *
+   * Loads the CSV product catalog into memory during application bootstrap.
+   * Called automatically by NestJS after the module is instantiated.
+   * Failures here prevent the application from starting.
+   *
+   * @throws Error if CSV file cannot be read or parsed.
+   */
   onModuleInit(): void {
     this.products = this.loadProducts();
     this.logger.log(
@@ -17,21 +26,15 @@ export class ProductsService implements OnModuleInit {
   }
 
   /**
-   * Returns up to 2 products whose embeddingText best matches the query.
+   * Search the product catalog using semantic token matching.
    *
-   * Algorithm: tokenise → strip stopwords → substring-score each product.
+   * Tokenizes the query, removes stopwords, and performs substring-based scoring
+   * against embeddings text to retrieve up to 2 matching products.
    *
-   * WHY SUBSTRING (not word-boundary)?
-   * The embeddingText uses compound words like "iphone" that contain search
-   * tokens like "phone" as substrings.  Word-boundary matching (\b) would miss
-   * these intentional matches, returning 0 results for "looking for a phone".
-   *
-   * WHY MIN LENGTH 3 + EXPANDED STOPWORDS?
-   * Short tokens like "am" are substrings of common words ("gAMing"), causing
-   * false-positive scores. Requiring ≥3 chars and adding "am" to stopwords
-   * eliminates this without affecting meaningful tokens.
-   *
-   * @param query - The query string provided by OpenAI (already distilled from user message)
+   * @param query - Semantic search query string (pre-distilled from user message by OpenAI)
+   * @returns Up to 2 products ranked by embedding token relevance, sorted descending.
+   *          Returns empty array if no products match after stopword filtering.
+   * @throws Does not throw; returns empty array on zero matches or invalid input.
    */
   search(query: string): Product[] {
     this.logger.log(`🔍 [searchProducts] Tool called — raw query: "${query}"`);
@@ -131,25 +134,15 @@ export class ProductsService implements OnModuleInit {
 
     return top2;
   }
-
-  // ---------------------------------------------------------------------------
   // Private — CSV ingestion
-  // ---------------------------------------------------------------------------
-
   /**
-   * Reads, normalizes, parses, and validates the CSV product catalog.
+   * Load and parse the product catalog from CSV file with RFC-4180 repairs.
    *
-   * WHY THE PRE-PROCESSING REGEX?
-   * Two rows contain unescaped inch-mark characters inside quoted CSV fields
-   * (VAVSEA 8" Knife, NELEUS 4" Shorts).  RFC-4180 requires these to be escaped
-   * as "".  We fix them in-memory with a narrow regex before parsing:
+   * Reads CSV, normalizes malformed escape sequences, parses rows, and validates
+   * required fields (displayTitle, price). Silently skips invalid rows.
    *
-   *   /(\d)"(?![,\n\r])/g  →  replaces  X"  with  X""
-   *
-   * The negative lookahead (?![,\n\r]) ensures we never touch a legitimate
-   * closing-delimiter quote, which is always followed by a comma or line-end.
-   * `relax_quotes` alone is insufficient because it still misaligns columns
-   * when the mid-field quote precedes an in-field comma (NELEUS row).
+   * @returns Array of validated Product objects indexed in memory.
+   * @throws Error if file cannot be read or CSV parsing fails after normalization.
    */
   private loadProducts(): Product[] {
     const filePath = path.join(process.cwd(), 'data', 'products_list.csv');
