@@ -12,7 +12,8 @@ export class ChatController {
   @ApiBody({ type: ChatRequestDto })
   @ApiResponse({ status: 200, description: 'LLM response' })
   async chat(@Body() chatRequest: ChatRequestDto) {
-    const response = await this.chatService.chat(chatRequest.message);
+    const response = await this.chatService.chat(chatRequest);
+
     return { response };
   }
 }
